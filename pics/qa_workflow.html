@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问答系统流程图</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .flowchart {
+            margin: 30px 0;
+            text-align: center;
+        }
+        .description {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+        }
+        .flow-box {
+            border: 2px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px auto;
+            width: 80%;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        .arrow {
+            font-size: 24px;
+            margin: 5px 0;
+            text-align: center;
+        }
+        .sub-boxes {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+        }
+        .sub-box {
+            border: 1px solid #666;
+            border-radius: 5px;
+            padding: 8px;
+            margin: 0 5px;
+            background-color: #e6f7ff;
+            flex: 1;
+        }
+        .decision {
+            border: 2px solid #9c27b0;
+            background-color: #f3e5f5;
+        }
+        .final {
+            border: 2px solid #4caf50;
+            background-color: #e8f5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>智能问答系统流程图</h1>
+        
+        <div class="flowchart">
+            <div class="flow-box">用户提问</div>
+            <div class="arrow">↓</div>
+            <div class="flow-box">大模型思考并拆解问题</div>
+            <div class="arrow">↓</div>
+            
+            <div class="sub-boxes">
+                <div class="sub-box">子问题1</div>
+                <div class="sub-box">子问题2</div>
+                <div class="sub-box">子问题N</div>
+            </div>
+            <div class="arrow">↓</div>
+            
+            <div class="sub-boxes">
+                <div class="sub-box">Agentic-RAG系统1</div>
+                <div class="sub-box">Agentic-RAG系统2</div>
+                <div class="sub-box">Agentic-RAG系统N</div>
+            </div>
+            <div class="arrow">↓</div>
+            
+            <div class="sub-boxes">
+                <div class="sub-box">子问题1答案</div>
+                <div class="sub-box">子问题2答案</div>
+                <div class="sub-box">子问题N答案</div>
+            </div>
+            <div class="arrow">↓</div>
+            
+            <div class="flow-box">收集所有子问题答案</div>
+            <div class="arrow">↓</div>
+            
+            <div class="flow-box decision">大模型判断是否需要第二轮问题拆解</div>
+            
+            <div style="display: flex; justify-content: space-around; margin: 10px 0;">
+                <div style="flex: 1; text-align: center;">
+                    <div class="arrow" style="transform: rotate(-45deg); display: inline-block;">↓</div>
+                    <div>需要</div>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <div class="arrow" style="transform: rotate(45deg); display: inline-block;">↓</div>
+                    <div>不需要</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-around; margin: 10px 0;">
+                <div style="flex: 1; text-align: center;">
+                    <div class="flow-box">返回拆解<br>(重新开始)</div>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <div class="flow-box">整合所有信息</div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-box final">最终答案</div>
+                    <div class="arrow">↓</div>
+                    <div class="flow-box final">返回给用户</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="description">
+            <h3>流程说明:</h3>
+            <ol>
+                <li>用户提出问题后，大模型思考并将问题拆解为多个子问题（子问题1、子问题2、...、子问题N）</li>
+                <li>每个子问题分别进入Agentic-RAG系统处理:
+                    <ul>
+                        <li>大模型选择合适的工具</li>
+                        <li>检索相关文档</li>
+                        <li>生成子问题的答案</li>
+                    </ul>
+                </li>
+                <li>收集所有子问题的答案</li>
+                <li>大模型判断是否需要第二轮问题拆解:
+                    <ul>
+                        <li>如果需要，返回步骤1进行新一轮拆解</li>
+                        <li>如果不需要，大模型整合所有信息生成最终答案</li>
+                    </ul>
+                </li>
+                <li>将最终答案返回给用户</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoLink</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card { 
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            background: #f9fafc;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .loading {
+            display: none;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timeline-container {
+            width: 100%;
+            padding: 30px 20px;
+            background: white;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline {
+            position: relative;
+            min-width: 100%;
+            height: auto;
+            min-height: 600px;
+            padding: 20px 0 80px 0;
+        }
+
+        .timeline-events-container {
+            position: relative;
+            width: 100%;
+            padding: 0 50px;
+            margin-bottom: 60px;  /* 为时间轴留出空间 */
+        }
+
+        .timeline-row {
+            position: relative;
+            width: 100%;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .timeline-event {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: absolute;
+            min-width: 180px;
+        }
+
+        .timeline-event::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            width: 2px;
+            height: 10px;
+            background: #cbd5e0;
+            transform: translateX(-50%);
+        }
+
+        .timeline-event:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            z-index: 2;
+        }
+
+        .timeline-event.range-event {
+            background: linear-gradient(to right, #e6f7ff, #f0f7ff);
+            border: 1px solid #bfdeff;
+        }
+
+        .timeline-event-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 40px;  /* 调整时间轴位置 */
+            height: 4px;
+            background: linear-gradient(to right, #3a7bd5, #00d2ff);
+            border-radius: 2px;
+        }
+
+        .timeline-range {
+            position: absolute;
+            height: 12px;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.5);
+            border-radius: 6px;
+            bottom: 36px;  /* 调整范围指示器位置 */
+        }
+
+        .year-mark {
+            position: absolute;
+            bottom: 10px;  /* 调整年份标记位置 */
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .year-mark::before {
+            content: '';
+            width: 2px;
+            height: 8px;
+            background: #666;
+            margin-bottom: 4px;
+        }
+
+        .timeline-event-dot {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            border-radius: 50%;
+            margin-bottom: 8px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px rgba(58, 123, 213, 0.5);
+        }
+
+        .timeline-event-title {
+            font-size: 0.85rem;
+            color: #333;
+            text-align: center;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .timeline-event-range {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .two-column-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .close-button {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover {
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3a7bd5;
+            box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.2);
+        }
+
+        .response-box {
+            background: #f9fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #3a7bd5;
+        }
+
+        .error-box {
+            background: #fff5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #e53e3e;
+            color: #e53e3e;
+        }
+
+        .section-title {
+            position: relative;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(to bottom, #3a7bd5, #00d2ff);
+            border-radius: 2px;
+        }
+
+        .navbar {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .related-events-network {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            pointer-events: none; /* 初始时不接收点击事件 */
+            z-index: 1001;
+        }
+
+        .main-event-node {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #3a7bd5;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 250px;
+            text-align: center;
+            z-index: 10;
+            pointer-events: auto; /* 允许点击 */
+        }
+
+        .related-event-node {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 12px;
+            width: 200px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 5;
+            pointer-events: auto; /* 允许点击 */
+        }
+
+        .related-event-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border-color: #3a7bd5;
+            z-index: 6;
+        }
+
+        .relation-line {
+            position: absolute;
+            height: 2px;
+            background: #cbd5e0;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+
+        .relation-arrow {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #cbd5e0;
+            border-right: 2px solid #cbd5e0;
+            transform: rotate(45deg);
+            z-index: 2;
+        }
+
+        .relation-label {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #4a5568;
+            white-space: nowrap;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 3;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .event-time {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* Markdown 样式 */
+        .markdown-content {
+            line-height: 1.6;
+        }
+        
+        .markdown-content h1, 
+        .markdown-content h2, 
+        .markdown-content h3, 
+        .markdown-content h4, 
+        .markdown-content h5, 
+        .markdown-content h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .markdown-content h1 { font-size: 1.8em; }
+        .markdown-content h2 { font-size: 1.5em; }
+        .markdown-content h3 { font-size: 1.3em; }
+        .markdown-content h4 { font-size: 1.1em; }
+        
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content ul, 
+        .markdown-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+        
+        .markdown-content ul { list-style-type: disc; }
+        .markdown-content ol { list-style-type: decimal; }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid #cbd5e0;
+            padding-left: 1em;
+            margin-left: 0;
+            margin-bottom: 1em;
+            color: #4a5568;
+        }
+        
+        .markdown-content code {
+            background-color: #f7fafc;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .markdown-content pre {
+            background-color: #f7fafc;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .markdown-content a {
+            color: #3182ce;
+            text-decoration: none;
+        }
+        
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content table th,
+        .markdown-content table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5em;
+        }
+        
+        .markdown-content table th {
+            background-color: #f7fafc;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="navbar bg-white shadow-sm py-4 px-6 mb-6 rounded-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="/" class="navbar-brand text-2xl font-bold text-gradient">ChronoLink</a>
+                <div class="navbar-links flex items-center space-x-4">
+                    <span class="text-gray-700 font-medium">欢迎, {{ username }}</span>
+                    <a href="{{ url_for('logout') }}" class="nav-link bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-4 py-2 rounded-lg hover:shadow-md transition-all">登出</a>
+                </div>
+            </div>
+        </div>
+        <div class="header">
+            <h1>ChronoLink</h1>
+            <p>连接过去与未来，AI为你梳理时间的答案</p>
+        </div>
+
+        <div class="timeline-container">
+            <h2 class="section-title text-xl font-bold mb-4">历史时间轴</h2>
+            <div id="timeline" class="timeline">
+                <div class="timeline-line"></div>
+                <div id="timeline-years"></div>
+                <div id="timeline-events"></div>
+            </div>
+        </div>
+
+        <div class="two-column-layout">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title text-xl font-bold">基于你的资料库深度解析</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label for="query" class="block text-gray-700 text-sm font-bold mb-2">请输入您的问题：</label>
+                        <textarea id="query" class="form-control" rows="3" placeholder="要先上传内容才能使用"></textarea>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="submitQuery()" class="btn-primary">
+                            提交查询
+                        </button>
+                    </div>
+
+                    <div id="loading" class="loading"></div>
+                    <div id="response" class="response-box hidden">
+                        <h2 class="text-lg font-semibold mb-2 text-gray-700">查询结果：</h2>
+                        <div id="responseText" class="text-gray-600 markdown-content"></div>
+                    </div>
+                    <div id="error" class="error-box hidden"></div>
+                </div>
+            </div>
+
+            <!-- 文本上传部分 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title text-xl font-bold">上传内容来丰富你的历史知识库吧</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label for="filename" class="block text-gray-700 text-sm font-bold mb-2">文件名称：</label>
+                        <input type="text" id="filename" class="form-control" placeholder="请输入文件名">
+                    </div>
+                    <div class="mb-4">
+                        <label for="uploadText" class="block text-gray-700 text-sm font-bold mb-2">历史文本内容：</label>
+                        <textarea id="uploadText" class="form-control" rows="6" placeholder="支持网页，公众号，B站和抖音链接，也可以直接输入文本。抖音链接服务不稳定，如果需要，建议使用通义的chrom插件实时语音转文字，然后把文本复制过来。"></textarea>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="uploadText();" class="btn-secondary">
+                            上传并处理
+                        </button>
+                    </div>
+
+                    <div id="progressContainer" style="display: none; margin-top: 20px; margin-bottom: 20px;">
+                        <div class="mb-2 flex justify-between">
+                            <span id="progressStatus" class="text-sm font-medium text-blue-700">处理中...</span>
+                            <span id="progressPercentage" class="text-sm font-medium text-blue-700"></span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <div id="processingMessage" class="flex items-center justify-center mt-4" style="display: none;">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+                            <span class="ml-3 text-blue-700 font-medium">处理文件时间较久，请耐心等待</span>
+                        </div>
+                    </div>
+                    <div id="uploadResponse" class="response-box hidden">
+                        <h2 class="text-lg font-semibold mb-2 text-gray-700">处理结果：</h2>
+                        <div id="uploadResponseText" class="text-gray-600"></div>
+                    </div>
+                    <div id="uploadError" class="error-box hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 事件详情模态框 -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeEventModal()">×</span>
+            <h2 id="eventTitle" class="text-xl font-bold mb-4"></h2>
+            <div id="eventContent" class="whitespace-pre-wrap"></div>
+        </div>
+        <div id="relatedEventsContainer" class="related-events-network"></div>
+    </div>
+
+    <div id="noDataAlert" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 hidden" role="alert">
+        <p class="font-bold">欢迎使用!</p>
+        <p>您的个人知识库目前为空。请上传文本内容开始构建您的时间线。</p>
+    </div>
+
+    <script>
+        // 调试函数
+        function debugLog(message) {
+            console.log(`[DEBUG] ${message}`);
+        }
+
+        let timelineData = [];
+
+        function getYearFromDate(dateStr) {
+            const date = dateStr.split('-')[0];
+            const match = date.match(/\d{4}/);
+            if (!match) {
+                console.error('Invalid date format:', dateStr);
+                return null;
+            }
+            return parseInt(match[0]);
+        }
+
+        function getYearRange(dateStr) {
+            // 处理可能的空值或无效值
+            if (!dateStr) {
+                console.error('Empty date string');
+                return null;
+            }
+            
+            // 添加调试日志
+            console.log('Processing date string:', dateStr);
+            
+            // 处理中文日期范围格式，如"1916年（袁世凯去世）至1920年7月（直皖战争爆发）"
+            if (dateStr.includes('至')) {
+                const parts = dateStr.split('至');
+                if (parts.length === 2) {
+                    // 从两部分分别提取年份
+                    const startYearMatch = parts[0].match(/(\d{4})年?/);
+                    const endYearMatch = parts[1].match(/(\d{4})年?/);
+                    
+                    if (startYearMatch && endYearMatch) {
+                        const startYear = parseInt(startYearMatch[1]);
+                        const endYear = parseInt(endYearMatch[1]);
+                        console.log(`Extracted year range from Chinese format: ${startYear}-${endYear}`);
+                        return {
+                            start: startYear,
+                            end: endYear,
+                            isRange: true
+                        };
+                    }
+                }
+            }
+            
+            // 特殊处理中文日期格式
+            if (dateStr.includes('年') && dateStr.includes('月')) {
+                // 提取年份
+                const yearMatch = dateStr.match(/(\d{4})年/);
+                if (yearMatch) {
+                    const year = parseInt(yearMatch[1]);
+                    console.log('Extracted year from Chinese format:', year);
+                    return { start: year, end: year, isRange: false };
+                }
+            }
+            
+            // 处理包含括号的日期，如"1916年（袁世凯去世）"
+            const yearWithParenthesesMatch = dateStr.match(/(\d{4})年?\s*（/);
+            if (yearWithParenthesesMatch) {
+                const year = parseInt(yearWithParenthesesMatch[1]);
+                console.log('Extracted year from parentheses format:', year);
+                return { start: year, end: year, isRange: false };
+            }
+            
+            // 处理标准日期范围格式，如"1916-1920"
+            const parts = dateStr.split('-');
+            if (parts.length > 1) {
+                const startMatch = parts[0].match(/\d{4}/);
+                const endMatch = parts[1].match(/\d{4}/);
+                
+                if (startMatch && endMatch) {
+                    const start = parseInt(startMatch[0]);
+                    const end = parseInt(endMatch[0]);
+                    console.log(`Extracted standard year range: ${start}-${end}`);
+                    return {
+                        start: start,
+                        end: end,
+                        isRange: true
+                    };
+                }
+            }
+            
+            // 处理单一年份，如"1916"或"1916年"
+            const singleYearMatch = dateStr.match(/(\d{4})(年)?/);
+            if (singleYearMatch) {
+                const year = parseInt(singleYearMatch[1]);
+                console.log('Extracted single year:', year);
+                return { start: year, end: year, isRange: false };
+            }
+            
+            // 如果以上所有模式都不匹配，尝试提取任何4位数字作为年份
+            const anyYearMatch = dateStr.match(/\d{4}/);
+            if (anyYearMatch) {
+                const year = parseInt(anyYearMatch[0]);
+                console.log('Extracted year as fallback:', year);
+                return { start: year, end: year, isRange: false };
+            }
+            
+            console.error('Could not extract year from:', dateStr);
+            return null;
+        }
+
+        function calculatePosition(year, minYear, maxYear, width) {
+            const padding = 100;
+            const availableWidth = width - (padding * 2);
+            const position = ((year - minYear) / (maxYear - minYear)) * availableWidth;
+            return position + padding;
+        }
+
+        function renderTimeline(data) {
+            if (!data || data.length === 0) {
+                console.error('No timeline data available');
+                return;
+            }
+
+            console.log('Rendering timeline with', data.length, 'events');
+            
+            const timeline = document.getElementById('timeline');
+            const timelineEvents = document.getElementById('timeline-events');
+            const timelineYears = document.getElementById('timeline-years');
+            
+            timelineEvents.innerHTML = '';
+            timelineYears.innerHTML = '';
+
+            // 获取所有年份（包括范围）
+            const allYears = [];
+            data.forEach(item => {
+                // 添加调试日志
+                console.log('Processing item:', item);
+                
+                const range = getYearRange(item.time);
+                if (range) {
+                    allYears.push(range.start);
+                    if (range.isRange) {
+                        allYears.push(range.end);
+                    }
+                } else {
+                    console.error('Failed to get year range for item:', item);
+                }
+            });
+
+            // 确保有有效的年份
+            if (allYears.length === 0) {
+                console.error('No valid years found in data');
+                return;
+            }
+            
+            const minYear = Math.min(...allYears);
+            const maxYear = Math.max(...allYears);
+            const timelineWidth = Math.max(1200, (maxYear - minYear + 2) * 200);
+            timeline.style.width = `${timelineWidth}px`;
+
+            // 创建年份标记
+            for (let year = minYear; year <= maxYear; year++) {
+                const yearMark = document.createElement('div');
+                yearMark.className = 'year-mark';
+                yearMark.style.left = `${calculatePosition(year, minYear, maxYear, timelineWidth)}px`;
+                yearMark.textContent = year;
+                timelineYears.appendChild(yearMark);
+            }
+
+            // 创建事件容器
+            const eventsContainer = document.createElement('div');
+            eventsContainer.className = 'timeline-events-container';
+            timelineEvents.appendChild(eventsContainer);
+
+            // 处理和排序事件
+            const processedEvents = data.map(item => {
+                const range = getYearRange(item.time);
+                if (!range) return null;
+                return {
+                    ...item,
+                    range,
+                    width: range.isRange ? 
+                        (range.end - range.start + 1) * 200 - 20 : // 减去间隔
+                        180,
+                    start: range.start,
+                    end: range.end,
+                    span: range.isRange ? range.end - range.start + 1 : 1
+                };
+            }).filter(Boolean);
+
+            // 对事件进行排序：先按开始年份，再按时间跨度（跨度大的在前）
+            processedEvents.sort((a, b) => {
+                if (a.start !== b.start) {
+                    return a.start - b.start;
+                }
+                return b.span - a.span;  // 跨度大的排在前面
+            });
+
+            // 创建行并放置事件
+            let rows = [[]];
+            let currentRow = 0;
+
+            processedEvents.forEach(item => {
+                let placed = false;
+                let rowIndex = 0;
+
+                // 检查每一行，直到找到合适的位置
+                while (!placed) {
+                    if (!rows[rowIndex]) {
+                        rows[rowIndex] = [];
+                    }
+
+                    let canPlaceInCurrentRow = true;
+                    const itemStart = calculatePosition(item.start, minYear, maxYear, timelineWidth);
+                    const itemEnd = itemStart + item.width;
+
+                    // 检查与当前行的所有事件是否重叠
+                    rows[rowIndex].forEach(existingItem => {
+                        const existingStart = calculatePosition(existingItem.start, minYear, maxYear, timelineWidth);
+                        const existingEnd = existingStart + existingItem.width;
+                        
+                        if (!(itemEnd < existingStart - 20 || itemStart > existingEnd + 20)) {
+                            canPlaceInCurrentRow = false;
+                        }
+                    });
+
+                    // 如果是大跨度事件（超过3年），强制放在新行
+                    if (item.span > 3 && rows[rowIndex].length > 0) {
+                        canPlaceInCurrentRow = false;
+                    }
+
+                    if (canPlaceInCurrentRow) {
+                        rows[rowIndex].push(item);
+                        placed = true;
+                    } else {
+                        rowIndex++;
+                    }
+                }
+            });
+
+            // 渲染所有行和事件
+            rows.forEach((rowEvents, rowIndex) => {
+                const row = document.createElement('div');
+                row.className = 'timeline-row';
+                eventsContainer.appendChild(row);
+
+                rowEvents.forEach(item => {
+                    const event = document.createElement('div');
+                    event.className = 'timeline-event' + (item.range.isRange ? ' range-event' : '');
+                    event.style.width = `${item.width}px`;
+                    
+                    const content = document.createElement('div');
+                    content.className = 'timeline-event-content';
+
+                    const dot = document.createElement('div');
+                    dot.className = 'timeline-event-dot';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'timeline-event-title';
+                    title.textContent = item.file;
+
+                    const timeInfo = document.createElement('div');
+                    timeInfo.className = 'timeline-event-range';
+                    timeInfo.textContent = item.time;
+
+                    content.appendChild(dot);
+                    content.appendChild(title);
+                    content.appendChild(timeInfo);
+                    event.appendChild(content);
+                    event.onclick = () => showEventDetails(item);
+
+                    // 设置事件位置
+                    const startPosition = calculatePosition(item.start, minYear, maxYear, timelineWidth);
+                    event.style.left = `${startPosition}px`;
+                    event.style.top = '0';
+
+                    row.appendChild(event);
+                });
+            });
+
+            // 调整时间线容器高度
+            timeline.style.height = `${rows.length * 80 + 100}px`;
+
+            // 添加时间线
+            const timelineLine = document.querySelector('.timeline-line');
+            if (timelineLine) {
+                timelineLine.style.width = `${timelineWidth - 100}px`;
+                timelineLine.style.left = '50px';
+            }
+
+            console.log('Timeline rendered with', data.length, 'events in', rows.length, 'rows');
+        }
+
+        // 添加一个更完善的Markdown解析函数
+        function parseMarkdown(text) {
+            // 处理加粗文本 **text**
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 处理换行符
+            html = html.replace(/\n/g, '<br>');
+            
+            // 处理缩进（将空格转换为&nbsp;）
+            html = html.replace(/   /g, '&nbsp;&nbsp;&nbsp;');
+            
+            return html;
+        }
+
+        function showEventDetails(item) {
+            const modal = document.getElementById('eventModal');
+            const title = document.getElementById('eventTitle');
+            const content = document.getElementById('eventContent');
+            const relatedEventsContainer = document.getElementById('relatedEventsContainer');
+
+            fetch('/get_file_content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    dir: item.dir,
+                    file: item.file
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                title.textContent = `${item.file} (${item.time})`;
+                
+                // 清空内容区域
+                content.innerHTML = '';
+                
+                // 处理按标题分组的内容
+                if (data.content_by_title) {
+                    const titles = Object.keys(data.content_by_title);
+                    
+                    titles.forEach((titleText, index) => {
+                        const titleContent = data.content_by_title[titleText];
+                        
+                        // 创建标题区块
+                        const titleSection = document.createElement('div');
+                        titleSection.className = 'mb-4 pb-4';
+                        if (index < titles.length - 1) {
+                            titleSection.style.borderBottom = '1px solid #e2e8f0';
+                        }
+                        
+                        // 添加标题
+                        const titleHeader = document.createElement('h3');
+                        titleHeader.className = 'text-lg font-bold mb-3 text-blue-700';
+                        titleHeader.textContent = titleText;
+                        titleSection.appendChild(titleHeader);
+                        
+                        // 添加内容
+                        if (titleContent.summary) {
+                            const summaryDiv = document.createElement('div');
+                            summaryDiv.className = 'mb-2';
+                            summaryDiv.innerHTML = '<strong>事件总结：</strong><br>' + parseMarkdown(titleContent.summary);
+                            titleSection.appendChild(summaryDiv);
+                        }
+                        
+                        if (titleContent.character_thought) {
+                            const thoughtDiv = document.createElement('div');
+                            thoughtDiv.className = 'mb-2';
+                            thoughtDiv.innerHTML = '<strong>人物观点：</strong><br>' + parseMarkdown(titleContent.character_thought);
+                            titleSection.appendChild(thoughtDiv);
+                        }
+                        
+                        if (titleContent.author_view) {
+                            const viewDiv = document.createElement('div');
+                            viewDiv.className = 'mb-2';
+                            viewDiv.innerHTML = '<strong>作者观点：</strong><br>' + parseMarkdown(titleContent.author_view);
+                            titleSection.appendChild(viewDiv);
+                        }
+                        
+                        if (titleContent.time) {
+                            const timeDiv = document.createElement('div');
+                            timeDiv.className = 'mb-2';
+                            timeDiv.innerHTML = '<strong>事件时间：</strong><br>' + parseMarkdown(titleContent.time);
+                            titleSection.appendChild(timeDiv);
+                        }
+                        
+                        content.appendChild(titleSection);
+                    });
+                } else if (data.content) {
+                    // 兼容旧格式的响应
+                    content.innerHTML = parseMarkdown(data.content);
+                }
+                
+                // 清空相关事件容器
+                relatedEventsContainer.innerHTML = '';
+                
+                // 如果有相关事件，创建网络图
+                if (data.related_events && data.related_events.length > 0) {
+                    // 显示模态框，以便我们可以获取其尺寸
+                    modal.style.display = 'block';
+                    
+                    // 等待模态框渲染完成
+                    setTimeout(() => {
+                        // 获取模态框内容的位置和尺寸
+                        const modalContent = document.querySelector('.modal-content');
+                        const modalRect = modalContent.getBoundingClientRect();
+                        
+                        // 计算相关事件的位置（围绕模态框的布局）
+                        const totalEvents = data.related_events.length;
+                        
+                        // 限制显示的相关事件数量，最多显示8个
+                        const maxEvents = Math.min(totalEvents, 8);
+                        const displayEvents = data.related_events.slice(0, maxEvents);
+                        
+                        displayEvents.forEach((related, index) => {
+                            // 计算角度和位置
+                            const angle = (2 * Math.PI * index) / maxEvents;
+                            
+                            // 确保起始点在模态框边缘之外
+                            const modalWidth = modalRect.width;
+                            const modalHeight = modalRect.height;
+                            
+                            // 计算模态框的半宽和半高
+                            const halfWidth = modalWidth / 2;
+                            const halfHeight = modalHeight / 2;
+                            
+                            // 计算从中心到边缘的距离（根据角度）
+                            let edgeDistance;
+                            if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
+                                // 主要是水平方向
+                                edgeDistance = halfWidth / Math.abs(Math.cos(angle));
+                            } else {
+                                // 主要是垂直方向
+                                edgeDistance = halfHeight / Math.abs(Math.sin(angle));
+                            }
+                            
+                            // 确保起始点在边缘之外（加10px的间距）
+                            const startDistance = edgeDistance + 10;
+                            const startX = startDistance * Math.cos(angle);
+                            const startY = startDistance * Math.sin(angle);
+                            
+                            // 计算相关事件节点的位置（距离起始点150px - 加长箭头）
+                            const nodeDistance = 150; // 加长箭头
+                            const nodeX = (startDistance + nodeDistance) * Math.cos(angle);
+                            const nodeY = (startDistance + nodeDistance) * Math.sin(angle);
+                            
+                            // 创建相关事件节点 - 调整左侧节点的位置避免与箭头重叠
+                            const relatedNode = document.createElement('div');
+                            relatedNode.className = 'related-event-node';
+                            
+                            // 检查是否是左侧节点（角度在左半部分）
+                            const isLeftSide = Math.cos(angle) < 0;
+                            if (isLeftSide) {
+                                // 左侧节点向左偏移更多，避免与箭头重叠
+                                relatedNode.style.left = `calc(50% + ${nodeX - 220}px)`;
+                            } else {
+                                relatedNode.style.left = `calc(50% + ${nodeX + 20}px)`;
+                            }
+                            
+                            relatedNode.style.top = `calc(50% + ${nodeY}px)`;
+                            relatedNode.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+                            relatedNode.style.border = '2px solid #3a7bd5';
+                            relatedNode.style.fontWeight = 'bold';
+                            
+                            // 查找相关事件的时间信息
+                            const relatedEventData = timelineData.find(e => e.file === related.event);
+                            const relatedTime = relatedEventData ? relatedEventData.time : '';
+                            
+                            relatedNode.innerHTML = `
+                                <div class="event-title" style="font-size: 14px; color: #2c5282;">${related.event}</div>
+                                <div class="event-time" style="font-size: 12px; color: #4a5568;">${relatedTime}</div>
+                            `;
+                            
+                            // 添加点击事件
+                            relatedNode.addEventListener('click', () => {
+                                if (relatedEventData) {
+                                    closeEventModal();
+                                    setTimeout(() => {
+                                        showEventDetails(relatedEventData);
+                                    }, 300);
+                                }
+                            });
+                            
+                            relatedEventsContainer.appendChild(relatedNode);
+                            
+                            // 创建连接线和箭头的容器
+                            const arrowContainer = document.createElement('div');
+                            arrowContainer.className = 'arrow-container';
+                            arrowContainer.style.position = 'absolute';
+                            arrowContainer.style.left = `calc(50% + ${startX}px)`;
+                            arrowContainer.style.top = `calc(50% + ${startY}px)`;
+                            arrowContainer.style.width = `${nodeDistance}px`;
+                            arrowContainer.style.height = '30px'; // 增加高度
+                            arrowContainer.style.transform = `rotate(${angle * (180 / Math.PI)}deg)`;
+                            arrowContainer.style.transformOrigin = '0 50%';
+                            arrowContainer.style.zIndex = '4';
+                            arrowContainer.style.cursor = 'pointer';
+                            arrowContainer.style.pointerEvents = 'auto';
+                            
+                            // 创建箭头线
+                            const arrowLine = document.createElement('div');
+                            arrowLine.style.position = 'absolute';
+                            arrowLine.style.top = '13px'; // 调整位置
+                            arrowLine.style.left = '0';
+                            arrowLine.style.width = '100%';
+                            arrowLine.style.height = '4px'; // 加粗
+                            arrowLine.style.background = '#2c5282'; // 更深的蓝色
+                            
+                            // 创建箭头头部
+                            const arrowHead = document.createElement('div');
+                            arrowHead.style.position = 'absolute';
+                            arrowHead.style.right = '-2px'; // 调整位置
+                            arrowHead.style.top = '5px'; // 调整位置
+                            arrowHead.style.width = '20px'; // 加大
+                            arrowHead.style.height = '20px'; // 加大
+                            arrowHead.style.borderTop = '4px solid #2c5282'; // 加粗，更深的蓝色
+                            arrowHead.style.borderRight = '4px solid #2c5282'; // 加粗，更深的蓝色
+                            arrowHead.style.transform = 'rotate(45deg)';
+                            
+                            // 创建关联原因卡片
+                            const relationLabel = document.createElement('div');
+                            relationLabel.className = 'relation-tooltip';
+                            relationLabel.style.position = 'absolute';
+                            relationLabel.style.background = 'white';
+                            relationLabel.style.padding = '15px'; // 增加内边距
+                            relationLabel.style.borderRadius = '10px';
+                            relationLabel.style.fontSize = '14px';
+                            relationLabel.style.fontWeight = 'normal'; // 普通字重
+                            relationLabel.style.whiteSpace = 'normal'; // 允许换行
+                            relationLabel.style.maxWidth = '300px';
+                            relationLabel.style.minWidth = '200px'; // 设置最小宽度
+                            relationLabel.style.textAlign = 'left'; // 左对齐文本
+                            relationLabel.style.zIndex = '10';
+                            relationLabel.style.display = 'none';
+                            relationLabel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.15)'; // 更明显的阴影
+                            relationLabel.style.lineHeight = '1.5'; // 增加行高
+                            relationLabel.style.border = '1px solid #e2e8f0'; // 添加边框
+                            
+                            // 添加小三角形指示器
+                            const triangle = document.createElement('div');
+                            triangle.style.position = 'absolute';
+                            triangle.style.width = '20px';
+                            triangle.style.height = '20px';
+                            triangle.style.background = 'white';
+                            triangle.style.boxShadow = '4px 4px 5px rgba(0, 0, 0, 0.1)';
+                            triangle.style.zIndex = '1';
+                            
+                            // 根据箭头方向调整关联原因卡片和三角形位置
+                            if (isLeftSide) {
+                                // 左侧箭头，卡片应该在右侧且更远，并且向上移动
+                                relationLabel.style.top = '50px'; // 向上移动更多
+                                relationLabel.style.left = '70px';
+                                relationLabel.style.transform = 'rotate(0deg)'; // 确保卡片内容正向显示
+                                
+                                // 调整三角形位置
+                                triangle.style.bottom = '20px';
+                                triangle.style.left = '-10px';
+                                triangle.style.transform = 'rotate(-45deg)';
+                            } else {
+                                // 右侧箭头，卡片应该在左侧且更远，并且在箭头上方
+                                relationLabel.style.top = '-300px'; // 向上移动更多
+                                relationLabel.style.right = '-50px';
+                                relationLabel.style.left = 'auto';
+                                relationLabel.style.transform = 'rotate(0deg)'; // 确保卡片内容正向显示
+                                
+                                // 调整三角形位置
+                                triangle.style.bottom = '20px';
+                                triangle.style.right = '-10px';
+                                triangle.style.left = 'auto';
+                                triangle.style.transform = 'rotate(135deg)';
+                            }
+                            
+                            // 添加标题
+                            const relationTitle = document.createElement('div');
+                            relationTitle.style.fontWeight = 'bold';
+                            relationTitle.style.fontSize = '16px';
+                            relationTitle.style.marginBottom = '8px';
+                            relationTitle.style.color = '#2c5282'; // 蓝色标题
+                            relationTitle.style.borderBottom = '1px solid #e2e8f0';
+                            relationTitle.style.paddingBottom = '8px';
+                            relationTitle.textContent = '关联原因';
+                            
+                            // 添加内容
+                            const relationContent = document.createElement('div');
+                            relationContent.style.fontSize = '14px';
+                            relationContent.textContent = related.reason;
+                            
+                            // 添加关闭按钮
+                            const closeButton = document.createElement('div');
+                            closeButton.style.position = 'absolute';
+                            closeButton.style.top = '8px';
+                            closeButton.style.right = '8px';
+                            closeButton.style.cursor = 'pointer';
+                            closeButton.style.fontSize = '16px';
+                            closeButton.style.color = '#718096';
+                            closeButton.style.width = '20px';
+                            closeButton.style.height = '20px';
+                            closeButton.style.display = 'flex';
+                            closeButton.style.alignItems = 'center';
+                            closeButton.style.justifyContent = 'center';
+                            closeButton.style.borderRadius = '50%';
+                            closeButton.textContent = '×';
+                            closeButton.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                relationLabel.style.display = 'none';
+                                clickHint.style.display = 'block'; // 显示提示
+                            });
+                            
+                            // 组装卡片
+                            relationLabel.appendChild(relationTitle);
+                            relationLabel.appendChild(relationContent);
+                            relationLabel.appendChild(closeButton);
+                            relationLabel.appendChild(triangle);
+                            
+                            // 添加点击提示
+                            const clickHint = document.createElement('div');
+                            clickHint.className = 'click-hint';
+                            clickHint.style.position = 'absolute';
+                            clickHint.style.top = '-25px'; // 调整位置
+                            clickHint.style.width = '100%';
+                            clickHint.style.textAlign = 'center';
+                            clickHint.style.fontSize = '13px'; // 加大字体
+                            clickHint.style.fontWeight = 'bold'; // 加粗
+                            clickHint.style.color = '#3182ce'; // 使用蓝色
+                            clickHint.style.textShadow = '0 0 2px white'; // 添加白色文字阴影，增加可读性
+                            clickHint.style.pointerEvents = 'auto'; // 允许点击
+                            clickHint.style.cursor = 'pointer'; // 显示手型光标
+                            clickHint.textContent = '点击查看关联原因';
+                            
+                            // 对左侧箭头的文字进行反向旋转，使其正向显示
+                            if (isLeftSide) {
+                                clickHint.style.transform = `rotate(${-angle * (180 / Math.PI)}deg)`;
+                            }
+                            
+                            // 为点击提示添加点击事件
+                            clickHint.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const isVisible = relationLabel.style.display === 'block';
+                                relationLabel.style.display = isVisible ? 'none' : 'block';
+                                // 点击后隐藏提示
+                                clickHint.style.display = 'none';
+                            });
+                            
+                            // 添加点击事件显示/隐藏关系标签
+                            arrowContainer.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const isVisible = relationLabel.style.display === 'block';
+                                relationLabel.style.display = isVisible ? 'none' : 'block';
+                                // 点击后隐藏提示
+                                clickHint.style.display = 'none';
+                            });
+                            
+                            // 对关联原因卡片进行反向旋转，使其正向显示
+                            if (isLeftSide) {
+                                relationLabel.style.transform = `rotate(${-angle * (180 / Math.PI)}deg)`;
+                                // 确保卡片在箭头容器外部显示
+                                relationLabel.style.zIndex = '20'; // 增加z-index确保显示在最上层
+                            } else {
+                                // 确保卡片在箭头容器外部显示
+                                relationLabel.style.zIndex = '20'; // 增加z-index确保显示在最上层
+                            }
+                            
+                            // 组装箭头
+                            arrowContainer.appendChild(arrowLine);
+                            arrowContainer.appendChild(arrowHead);
+                            arrowContainer.appendChild(relationLabel);
+                            arrowContainer.appendChild(clickHint);
+                            relatedEventsContainer.appendChild(arrowContainer);
+                        });
+                        
+                        // 如果有更多相关事件未显示，添加提示
+                        if (totalEvents > maxEvents) {
+                            const moreInfo = document.createElement('div');
+                            moreInfo.className = 'text-center text-gray-500 mt-4';
+                            moreInfo.style.position = 'absolute';
+                            moreInfo.style.bottom = '20px';
+                            moreInfo.style.left = '0';
+                            moreInfo.style.right = '0';
+                            moreInfo.style.pointerEvents = 'auto';
+                            moreInfo.style.fontSize = '14px';
+                            moreInfo.style.fontWeight = 'bold';
+                            moreInfo.style.color = '#4a5568';
+                            moreInfo.textContent = `还有 ${totalEvents - maxEvents} 个相关事件未显示`;
+                            relatedEventsContainer.appendChild(moreInfo);
+                        }
+                        
+                        // 显示相关事件网络
+                        relatedEventsContainer.style.display = 'block';
+                    }, 100); // 给模态框一点时间来渲染
+                } else {
+                    // 没有相关事件，隐藏容器
+                    relatedEventsContainer.style.display = 'none';
+                    modal.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                modal.style.display = 'block';
+            });
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').style.display = 'none';
+            document.getElementById('relatedEventsContainer').style.display = 'none';
+        }
+
+        async function submitQuery() {
+            const queryText = document.getElementById('query').value.trim();
+            const loading = document.getElementById('loading');
+            const response = document.getElementById('response');
+            const responseText = document.getElementById('responseText');
+            const error = document.getElementById('error');
+
+            if (!queryText) {
+                error.textContent = '请输入查询内容';
+                error.classList.remove('hidden');
+                response.classList.add('hidden');
+                return;
+            }
+
+            loading.style.display = 'block';
+            error.classList.add('hidden');
+            response.classList.add('hidden');
+
+            // 设置一个标志，表示请求是否已经完成
+            let requestCompleted = false;
+
+            try {
+                // 设置一个超时计时器 - 增加到5分钟
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => {
+                        if (!requestCompleted) {
+                            reject(new Error('请求处理时间较长，但仍在后台进行。请稍后查看结果，或检查网络连接。'));
+                        }
+                    }, 300000); // 5分钟超时 (300000ms)
+                });
+
+                // 创建查询请求
+                const fetchPromise = fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: queryText }),
+                }).then(async res => {
+                    requestCompleted = true;
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        loading.style.display = 'none';
+                        responseText.innerHTML = marked.parse(data.response);
+                        response.classList.remove('hidden');
+                        error.classList.add('hidden');
+                    } else {
+                        const data = await res.json().catch(() => ({ error: '服务器返回了无效的响应格式' }));
+                        loading.style.display = 'none';
+                        error.textContent = data.error || '查询失败，请稍后重试';
+                        error.classList.remove('hidden');
+                        response.classList.add('hidden');
+                    }
+                });
+
+                // 使用 Promise.race 来处理超时
+                await Promise.race([fetchPromise, timeoutPromise]);
+            } catch (err) {
+                console.error("❌ Query error:", err);
+                
+                if (!requestCompleted) {
+                    // 如果是超时错误，显示友好的提示
+                    loading.style.display = 'none';
+                    error.textContent = err.message || '系统错误，请稍后重试';
+                    error.classList.remove('hidden');
+                    response.classList.add('hidden');
+                    
+                    // 添加一个重试按钮和查看结果按钮
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'flex space-x-4 mt-4';
+                    
+                    const retryButton = document.createElement('button');
+                    retryButton.className = 'btn-primary';
+                    retryButton.textContent = '重试查询';
+                    retryButton.onclick = submitQuery;
+                    
+                    const checkResultButton = document.createElement('button');
+                    checkResultButton.className = 'btn-secondary';
+                    checkResultButton.textContent = '检查结果';
+                    checkResultButton.onclick = checkQueryResult;
+                    
+                    buttonContainer.appendChild(retryButton);
+                    buttonContainer.appendChild(checkResultButton);
+                    
+                    error.appendChild(document.createElement('br'));
+                    error.appendChild(buttonContainer);
+                }
+            }
+        }
+
+        // 添加检查查询结果的函数
+        function checkQueryResult() {
+            const loading = document.getElementById('loading');
+            const response = document.getElementById('response');
+            const responseText = document.getElementById('responseText');
+            const error = document.getElementById('error');
+            
+            loading.style.display = 'block';
+            error.classList.add('hidden');
+            
+            // 获取最近的查询结果
+            fetch('/get_last_query_result', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.response) {
+                    responseText.innerHTML = marked.parse(data.response);
+                    response.classList.remove('hidden');
+                    error.classList.add('hidden');
+                } else {
+                    error.textContent = data.error || '查询结果尚未准备好，请稍后再试';
+                    error.classList.remove('hidden');
+                    response.classList.add('hidden');
+                }
+            })
+            .catch(err => {
+                console.error("❌ Error checking result:", err);
+                loading.style.display = 'none';
+                error.textContent = '获取结果失败，请稍后重试';
+                error.classList.remove('hidden');
+                response.classList.add('hidden');
+            });
+        }
+
+        function setupStatusListener() {
+            console.log("Setting up status listener...");
+            
+            const statusElement = document.createElement('div');
+            statusElement.id = 'status-updates';
+            statusElement.style.position = 'fixed';
+            statusElement.style.bottom = '20px';
+            statusElement.style.right = '20px';
+            statusElement.style.padding = '10px';
+            statusElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            statusElement.style.color = 'white';
+            statusElement.style.borderRadius = '5px';
+            statusElement.style.display = 'none';
+            document.body.appendChild(statusElement);
+            
+            let eventSource = null;
+            let reconnectAttempts = 0;
+            const maxReconnectAttempts = 5;
+            
+            function createEventSource() {
+                console.log("Creating SSE connection...");
+                
+                // 关闭现有连接
+                if (eventSource) {
+                    console.log("Closing existing SSE connection");
+                    eventSource.close();
+                }
+                
+                // 创建新连接
+                eventSource = new EventSource('/status_stream');
+                
+                eventSource.onopen = function() {
+                    console.log("✅ SSE connection opened successfully");
+                    reconnectAttempts = 0; // 重置重连计数
+                    
+                    // 连接成功后发送一个测试消息请求
+                    fetch('/test_sse', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => console.log("📤 Test SSE message sent:", data))
+                        .catch(err => console.error("❌ Error sending test SSE:", err));
+                };
+                
+                eventSource.onmessage = function(event) {
+                    console.log("📩 Received SSE message:", event.data);
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log("📊 Parsed data:", data);
+                        
+                        // 处理不同类型的消息
+                        if (data.type === 'heartbeat') {
+                            console.log("💓 Heartbeat received");
+                            return;
+                        }
+                        
+                        if (data.type === 'timeout') {
+                            console.log("⏱️ Connection timeout notification received");
+                            return;
+                        }
+                        
+                        if (data.type === 'error') {
+                            console.error("❌ Server error:", data.message);
+                            // 显示错误信息
+                            const errorElement = document.getElementById('uploadError');
+                            if (errorElement) {
+                                errorElement.textContent = data.message || '处理过程中出现错误';
+                                errorElement.classList.remove('hidden');
+                                document.getElementById('uploadResponse').classList.add('hidden');
+                            }
+                            // 更新进度条为错误状态
+                            updateProgressDisplay("错误", data.message);
+                            return;
+                        }
+                        
+                        // 处理查询结果
+                        if (data.type === 'query_result') {
+                            console.log("📝 Received query result");
+                            const loading = document.getElementById('loading');
+                            const response = document.getElementById('response');
+                            const responseText = document.getElementById('responseText');
+                            const error = document.getElementById('error');
+                            
+                            loading.style.display = 'none';
+                            
+                            if (data.status === "完成") {
+                                responseText.innerHTML = marked.parse(data.message || '查询完成，但没有返回结果');
+                                response.classList.remove('hidden');
+                                error.classList.add('hidden');
+                            } else if (data.status === "错误") {
+                                error.textContent = data.message || '查询处理出错';
+                                error.classList.remove('hidden');
+                                response.classList.add('hidden');
+                            }
+                        }
+                        
+                        // 处理上传进度更新
+                        if (data.type === 'upload_progress') {
+                            console.log("📊 Upload progress update:", data);
+                            updateProgressDisplay(data.status, data.message);
+                            return;
+                        }
+                        
+                        // 处理状态更新
+                        if (data.status) {
+                            // 更新状态显示
+                            statusElement.textContent = data.status;
+                            statusElement.style.display = 'block';
+                            
+                            // 更新进度条
+                            console.log("🔄 Updating progress display with status:", data.status);
+                            updateProgressDisplay(data.status, data.message);
+                            
+                            // 如果状态是"完成"，显示成功消息
+                            if (data.status === "完成") {
+                                console.log("🏁 Process completed successfully");
+                                const responseElement = document.getElementById('uploadResponse');
+                                const responseTextElement = document.getElementById('uploadResponseText');
+                                if (responseElement && responseTextElement) {
+                                    responseTextElement.textContent = data.message || '上传成功！';
+                                    responseElement.classList.remove('hidden');
+                                    document.getElementById('uploadError').classList.add('hidden');
+                                }
+                                
+                                // 重新加载时间轴 - 添加延迟确保服务器有时间处理完成
+                                setTimeout(() => {
+                                    console.log("🔄 Refreshing timeline after successful upload");
+                                    fetch('/get_directory_structure')
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            console.log("📊 Received timeline data:", data.length, "items");
+                                            timelineData = data; // 更新全局时间线数据
+                                            renderTimeline(data);
+                                        })
+                                        .catch(err => console.error("❌ Failed to refresh timeline:", err));
+                                }, 1000); // 添加1秒延迟
+                                
+                                // 5秒后隐藏状态框
+                                setTimeout(() => {
+                                    statusElement.style.display = 'none';
+                                }, 5000);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("❌ Error parsing SSE message:", e, "Raw data:", event.data);
+                    }
+                };
+                
+                eventSource.onerror = function(e) {
+                    console.error("❌ SSE connection error:", e);
+                    
+                    // 如果连接已关闭，尝试重新连接
+                    if (eventSource.readyState === EventSource.CLOSED) {
+                        console.log("🔄 Connection closed, attempting to reconnect...");
+                        
+                        if (reconnectAttempts < maxReconnectAttempts) {
+                            reconnectAttempts++;
+                            console.log(`🔄 Reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts}`);
+                            
+                            // 使用指数退避策略
+                            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 10000);
+                            console.log(`⏱️ Reconnecting in ${delay}ms`);
+                            
+                            setTimeout(() => {
+                                createEventSource();
+                            }, delay);
+                        } else {
+                            console.log("❌ Max reconnect attempts reached");
+                            statusElement.textContent = "连接失败，请刷新页面重试";
+                            statusElement.style.display = 'block';
+                        }
+                    }
+                };
+                
+                return eventSource;
+            }
+            
+            // 初始化连接
+            eventSource = createEventSource();
+            
+            // 添加页面可见性变化监听器
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    console.log("📱 Page became visible, checking SSE connection");
+                    if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+                        console.log("🔄 Reconnecting SSE after page became visible");
+                        eventSource = createEventSource();
+                    }
+                }
+            });
+            
+            console.log("✅ Status listener setup complete");
+            
+            // 返回一个清理函数
+            return function cleanup() {
+                if (eventSource) {
+                    console.log("🧹 Cleaning up SSE connection");
+                    eventSource.close();
+                }
+            };
+        }
+
+        // 在页面加载时调用
+        let statusListenerCleanup = null;
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置状态监听器
+            statusListenerCleanup = setupStatusListener();
+            
+            // 检查用户是否有数据
+            checkUserData();
+        });
+
+        // 在页面卸载时清理
+        window.addEventListener('beforeunload', function() {
+            if (statusListenerCleanup) {
+                statusListenerCleanup();
+            }
+        });
+
+        // 修改 updateProgressDisplay 函数，添加对新增状态的支持
+        function updateProgressDisplay(status, message) {
+            console.log("🔄 Updating progress with status:", status, "Message:", message);
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressStatus = document.getElementById('progressStatus');
+            const progressPercentage = document.getElementById('progressPercentage');
+            const progressBar = document.getElementById('progressBar');
+            const processingMessage = document.getElementById('processingMessage');
+            
+            if (!progressContainer || !progressStatus || !progressPercentage || !progressBar) {
+                console.error("❌ Progress elements not found in DOM");
+                return;
+            }
+            
+            // 显示进度容器
+            progressContainer.style.display = 'block';
+            
+            // 更新状态文本
+            progressStatus.textContent = status;
+            
+            // 如果有详细消息，显示在处理信息中
+            if (message && processingMessage) {
+                const messageSpan = processingMessage.querySelector('span');
+                if (messageSpan) {
+                    messageSpan.textContent = message;
+                }
+                processingMessage.style.display = 'flex';
+            }
+            
+            // 根据不同状态更新进度条
+            let progressValue = 0;
+            
+            switch(status) {
+                case "准备处理...":
+                    progressValue = 5;
+                    break;
+                case "开始处理":
+                    progressValue = 10;
+                    break;
+                case "正在从抖音链接提取内容":
+                    progressValue = 30;
+                    break;
+                case "正在从B站链接提取内容":
+                    progressValue = 30;
+                    break;
+                case "正在处理内容":
+                    progressValue = 50;
+                    break;
+                case "正在分析文本内容":
+                    progressValue = 70;
+                    break;
+                case "正在提取事件信息":
+                    progressValue = 80;
+                    break;
+                case "正在生成事件摘要":
+                    progressValue = 90;
+                    break;
+                case "完成":
+                    progressValue = 100;
+                    processingMessage.style.display = 'none'; // 完成时隐藏处理信息
+                    break;
+                case "错误":
+                    progressValue = 100;
+                    progressStatus.style.color = '#e53e3e';
+                    processingMessage.style.display = 'none'; // 错误时隐藏处理信息
+                    break;
+                default:
+                    // 如果是数字，直接使用该数字作为进度值
+                    if (!isNaN(parseInt(status))) {
+                        progressValue = parseInt(status);
+                    } else {
+                        progressValue = 10;
+                    }
+                    break;
+            }
+            
+            // 设置进度条宽度
+            progressBar.style.width = `${progressValue}%`;
+            
+            // 更新百分比文本
+            progressPercentage.textContent = `${progressValue}%`;
+            
+            // 如果完成或错误，改变进度条颜色
+            if (status === "完成") {
+                progressBar.style.backgroundColor = '#38a169';
+                // 5秒后隐藏进度条
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    processingMessage.style.display = 'none'; // 确保处理信息也被隐藏
+                }, 5000);
+            } else if (status === "错误") {
+                progressBar.style.backgroundColor = '#e53e3e';
+                // 5秒后隐藏进度条
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    processingMessage.style.display = 'none'; // 确保处理信息也被隐藏
+                }, 5000);
+            } else {
+                progressBar.style.backgroundColor = '#3182ce';
+            }
+            
+            console.log(`✅ Progress updated: ${status} (${progressValue}%)`);
+        }
+
+        async function uploadText() {
+            const filename = document.getElementById('filename').value.trim();
+            const text = document.getElementById('uploadText').value.trim();
+            const progressContainer = document.getElementById('progressContainer');
+            const processingMessage = document.getElementById('processingMessage');
+            const response = document.getElementById('uploadResponse');
+            const responseText = document.getElementById('uploadResponseText');
+            const error = document.getElementById('uploadError');
+
+            if (!filename || !text) {
+                error.textContent = '请输入文件名和文本内容';
+                error.classList.remove('hidden');
+                response.classList.add('hidden');
+                return;
+            }
+
+            console.log("📤 Starting upload process");
+            
+            // 显示进度条和处理信息，隐藏其他反馈元素
+            progressContainer.style.display = 'block';
+            processingMessage.style.display = 'flex'; // 显示处理信息
+            document.getElementById('progressStatus').textContent = '准备处理...';
+            document.getElementById('progressPercentage').textContent = '5%';
+            document.getElementById('progressBar').style.width = '5%';
+            document.getElementById('progressBar').style.backgroundColor = '#3182ce';
+            error.classList.add('hidden');
+            response.classList.add('hidden');
+
+            try {
+                // 发送初始请求，但不等待完成
+                const uploadResponse = await fetch('/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename, text }),
+                });
+                
+                // 检查初始响应
+                if (uploadResponse.ok) {
+                    const data = await uploadResponse.json();
+                    console.log("✅ Upload request accepted:", data);
+                    
+                    // 清空输入字段
+                    document.getElementById('filename').value = '';
+                    document.getElementById('uploadText').value = '';
+                    
+                    // 更新进度状态
+                    updateProgressDisplay("开始处理", "服务器已接收请求，开始处理...");
+                } else {
+                    // 处理错误响应
+                    const errorData = await uploadResponse.json().catch(() => ({ error: '服务器返回了无效的响应' }));
+                    console.error("❌ Upload request failed:", errorData);
+                    error.textContent = errorData.error || '上传失败，请稍后重试';
+                    error.classList.remove('hidden');
+                    progressContainer.style.display = 'none';
+                    processingMessage.style.display = 'none';
+                }
+            } catch (err) {
+                console.error("❌ Error initiating upload:", err);
+                error.textContent = '发送请求时出错，请稍后重试';
+                error.classList.remove('hidden');
+                progressContainer.style.display = 'none';
+                processingMessage.style.display = 'none';
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('eventModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 检查用户是否有数据
+        function checkUserData() {
+            fetch('/get_directory_structure')
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length === 0) {
+                        // 用户没有数据，显示提示
+                        document.getElementById('noDataAlert').classList.remove('hidden');
+                    } else {
+                        // 用户有数据，渲染时间线
+                        timelineData = data; // 存储时间线数据到全局变量
+                        renderTimeline(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading timeline data:', error);
+                });
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档处理流程图</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .flowchart {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .node {
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .main-process {
+            background-color: #4285f4;
+            color: white;
+            font-weight: bold;
+        }
+        .sub-process {
+            background-color: #34a853;
+            color: white;
+        }
+        .llm-process {
+            background-color: #fbbc05;
+            color: #333;
+        }
+        .data-process {
+            background-color: #ea4335;
+            color: white;
+        }
+        .status-update {
+            background-color: #9c27b0;
+            color: white;
+            font-style: italic;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 20px;
+            color: #666;
+            margin: 5px 0;
+        }
+        .parallel-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .parallel-box {
+            flex: 1;
+            margin: 0 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px 10px 0;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="flowchart">
+        <h1>文档处理流程图</h1>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #4285f4;"></div>
+                <span>主要流程</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #34a853;"></div>
+                <span>子流程</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fbbc05;"></div>
+                <span>AI分析</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ea4335;"></div>
+                <span>数据处理</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #9c27b0;"></div>
+                <span>状态更新</span>
+            </div>
+        </div>
+        
+        <!-- 流程开始 -->
+        <div class="node main-process">用户上传文档</div>
+        <div class="arrow">↓</div>
+        
+        <div class="node main-process">系统接收文档</div>
+        <div class="arrow">↓</div>
+        
+        <div class="node status-update">更新状态: "正在处理内容"</div>
+        <div class="arrow">↓</div>
+        
+        <div class="node main-process">开始文档处理流程</div>
+        <div class="arrow">↓</div>
+        
+        <!-- 两个主要步骤 -->
+        <div class="parallel-container">
+            <div class="parallel-box">
+                <div class="node sub-process">步骤1: 提取时间线事件</div>
+                <div class="arrow">↓</div>
+                <div class="node status-update">更新状态: "正在分析文本内容"</div>
+                <div class="arrow">↓</div>
+                <div class="node llm-process">AI分析: 生成事件列表</div>
+            </div>
+            
+            <div class="parallel-box">
+                <div class="node sub-process">步骤2: 处理文本摘要</div>
+                <div class="arrow">↓</div>
+                <div class="node data-process">生成文档整体摘要</div>
+                <div class="arrow">↓</div>
+                <div class="node data-process">保存文本摘要到数据库</div>
+            </div>
+        </div>
+        
+        <div class="arrow">↓</div>
+        
+        <!-- 事件处理详细流程 -->
+        <div class="node sub-process">按时间顺序处理事件</div>
+        <div class="arrow">↓</div>
+        
+        <div class="parallel-container">
+            <div class="parallel-box">
+                <div class="node data-process">1. 提取时间和事件标题</div>
+                <div class="arrow">↓</div>
+                <div class="node data-process">2. 检查事件是否存在</div>
+            </div>
+            
+            <div class="parallel-box">
+                <div class="node data-process">3. 处理事件关系</div>
+                <div class="arrow">↓</div>
+                <div class="node llm-process">AI分析: 生成事件关系</div>
+                <div class="arrow">↓</div>
+                <div class="node data-process">保存关系到数据库</div>
+            </div>
+        </div>
+        
+        <div class="arrow">↓</div>
+        
+        <!-- 处理单个事件 -->
+        <div class="node sub-process">处理单个事件</div>
+        <div class="arrow">↓</div>
+        <div class="node status-update">更新状态: "正在生成事件摘要"</div>
+        <div class="arrow">↓</div>
+        
+        <!-- 事件摘要处理 -->
+        <div class="node sub-process">生成事件摘要</div>
+        <div class="arrow">↓</div>
+        
+        <div class="node llm-process">AI分析: 生成事件详细摘要</div>
+        <div class="arrow">↓</div>
+        
+        <div class="node data-process">提取关键信息 (人物、时间、思想内容等)</div>
+        <div class="arrow">↓</div>
+        
+        <div class="node data-process">保存元数据和嵌入向量</div>
+        <div class="arrow">↓</div>
+        
+        <!-- 流程结束 -->
+        <div class="node status-update">更新状态: "完成"</div>
+    </div>
+</body>
+</html>
