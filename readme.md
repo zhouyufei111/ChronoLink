@@ -25,6 +25,9 @@
 ### 时间轴界面
 ![时间轴界面](pics/timeline.png)
 
+### 事件详情
+![事件详情](pics/event.png)
+
 ### 知识提取
 ![知识提取](pics/upload.png)
 
